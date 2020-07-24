@@ -1,5 +1,7 @@
 # goanda
-A Golang wrapper for the [OANDA v20 API](http://developer.oanda.com/rest-live-v20/introduction/). Currently OANDA has wrappers for Python, Javascript and Java. Goanda exists to extend upon those languages because of the increasing popularity of Go and for a side prject I'm working on.
+A Golang wrapper for the [OANDA v20 API](http://developer.oanda.com/rest-live-v20/introduction/). Currently OANDA has wrappers for Python, Javascript and Java. Goanda exists to extend upon those languages because of the increasing popularity of Go.
+
+Forked from [AwolDes/goanda](https://github.com/AwolDes/goanda) with some API improvements including improved error handling (breaking changes). Warning: this API is subject to change until v1.0 tag.
 
 ## Features
 Goanda can perform the following actions on your OANDA brokerage accounts:
@@ -18,7 +20,7 @@ Goanda can perform the following actions on your OANDA brokerage accounts:
 - Get all pricing data (bid/ask spread) on specific instruments
 
 ## Requirements
-- Go v1.9+
+- Go v1.14+
 
 _Note: This package was created by a third party, and was not created by anyone affiliated with OANDA_
 
@@ -57,7 +59,8 @@ func main() {
 	key := os.Getenv("OANDA_API_KEY")
 	accountID := os.Getenv("OANDA_ACCOUNT_ID")
 	oanda := goanda.NewConnection(accountID, key, false)
-	history := oanda.GetCandles("EUR_USD")
+	history, err := oanda.GetCandles("EUR_USD")
+	goanda.CheckErr(err)
 	spew.Dump(history)
 }
 
@@ -77,6 +80,7 @@ For now if you'd like to contribute create an Issue and/or submit a PR!
 - [x] Account endpoints (to get information on the account)
 - [x] Transaction endpoints (to get information on account transactions)
 - [x] Pricing endpoints (to get pricing of instruments)
+- [x] Persistent HTTP connections (as recommended by Oanda)
 - [ ] Streaming endpoints for Pricing & Transactions
 
 ### **Docs**
