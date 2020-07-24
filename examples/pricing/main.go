@@ -4,12 +4,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/awoldes/goanda"
+	"github.com/colinskow/goanda"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )
 
-func positions() {
+func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -18,12 +18,8 @@ func positions() {
 	accountID := os.Getenv("OANDA_ACCOUNT_ID")
 	oanda := goanda.NewConnection(accountID, key, false)
 
-	closePosition := oanda.ClosePosition("AUD_USD", goanda.ClosePositionPayload{
-		LongUnits:  "NONE",
-		ShortUnits: "ALL",
-	})
-	spew.Dump("%+v\n", closePosition)
-
-	openPositions := oanda.GetOpenPositions()
-	spew.Dump("%+v\n", openPositions)
+	instruments := []string{"AUD_USD", "EUR_NZD"}
+	orderResponse, err := oanda.GetPricingForInstruments(instruments)
+	goanda.CheckErr(err)
+	spew.Dump("%+v\n", orderResponse)
 }

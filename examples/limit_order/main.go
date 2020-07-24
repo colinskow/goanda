@@ -4,12 +4,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/awoldes/goanda"
+	"github.com/colinskow/goanda"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )
 
-func placeLimitOrder() {
+func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -19,7 +19,7 @@ func placeLimitOrder() {
 	oanda := goanda.NewConnection(accountID, key, false)
 	order := goanda.OrderPayload{
 		Order: goanda.OrderBody{
-			Units:        "100",
+			Units:        100,
 			Instrument:   "EUR_USD",
 			TimeInForce:  "FOK",
 			Type:         "LIMIT",
@@ -31,6 +31,7 @@ func placeLimitOrder() {
 			},
 		},
 	}
-	orderResult := oanda.CreateOrder(order)
+	orderResult, err := oanda.CreateOrder(order)
+	goanda.CheckErr(err)
 	spew.Dump("%+v\n", orderResult)
 }

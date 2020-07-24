@@ -4,12 +4,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/awoldes/goanda"
+	"github.com/colinskow/goanda"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )
 
-func updateOrder() {
+func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -19,7 +19,7 @@ func updateOrder() {
 	oanda := goanda.NewConnection(accountID, key, false)
 	order := goanda.OrderPayload{
 		Order: goanda.OrderBody{
-			Units:        "1000",
+			Units:        1000,
 			Instrument:   "EUR_USD",
 			TimeInForce:  "FOK",
 			Type:         "LIMIT",
@@ -32,6 +32,7 @@ func updateOrder() {
 		},
 	}
 
-	orderResponse := oanda.UpdateOrder("order-id", order)
+	orderResponse, err := oanda.UpdateOrder("order-id", order)
+	goanda.CheckErr(err)
 	spew.Dump("%+v\n", orderResponse)
 }

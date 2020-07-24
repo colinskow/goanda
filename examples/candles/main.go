@@ -4,12 +4,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/awoldes/goanda"
+	"github.com/colinskow/goanda"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )
 
-func getOrders() {
+func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -17,8 +17,12 @@ func getOrders() {
 	key := os.Getenv("OANDA_API_KEY")
 	accountID := os.Getenv("OANDA_ACCOUNT_ID")
 	oanda := goanda.NewConnection(accountID, key, false)
-	orders := oanda.GetOrders("EUR_USD")
-	pendingOrders := oanda.GetPendingOrders()
-	spew.Dump("%+v\n", orders)
-	spew.Dump("%+v\n", pendingOrders)
+	gran := "M5"
+	count := 60
+	candleSpec := goanda.GetCandlesPayload{
+		Granularity: &gran,
+		Count:       &count}
+	history, err := oanda.GetCandles("EUR_USD", candleSpec)
+	goanda.CheckErr(err)
+	spew.Dump(history)
 }

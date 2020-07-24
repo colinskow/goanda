@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// ReceivedTrades http://developer.oanda.com/rest-live-v20/trade-ep/
 type ReceivedTrades struct {
 	LastTransactionID string `json:"lastTransactionID"`
 	Trades            []struct {
@@ -23,6 +24,7 @@ type ReceivedTrades struct {
 	} `json:"trades"`
 }
 
+// ReceivedTrade http://developer.oanda.com/rest-live-v20/trade-ep/
 type ReceivedTrade struct {
 	LastTransactionID string `json:"lastTransactionID"`
 	Trades            struct {
@@ -39,10 +41,12 @@ type ReceivedTrade struct {
 	} `json:"trade"`
 }
 
+// CloseTradePayload http://developer.oanda.com/rest-live-v20/trade-ep/
 type CloseTradePayload struct {
 	Units string
 }
 
+// ModifiedTrade http://developer.oanda.com/rest-live-v20/trade-df/
 type ModifiedTrade struct {
 	OrderCreateTransaction struct {
 		Type         string `json:"type"`
@@ -112,40 +116,79 @@ type ModifiedTrade struct {
 	LastTransactionID     string   `json:"lastTransactionID"`
 }
 
-func (c *OandaConnection) GetTradesForInstrument(instrument string) ReceivedTrades {
+// GetTradesForInstrument http://developer.oanda.com/rest-live-v20/trade-ep/
+func (c *OandaConnection) GetTradesForInstrument(instrument string) (ReceivedTrades, error) {
 	endpoint := "/accounts/" + c.accountID + "/trades" + "?instrument=" + instrument
-
-	response := c.Request(endpoint)
 	data := ReceivedTrades{}
-	unmarshalJson(response, &data)
-	return data
+
+	response, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
-func (c *OandaConnection) GetOpenTrades() ReceivedTrades {
+// GetOpenTrades http://developer.oanda.com/rest-live-v20/trade-ep/
+func (c *OandaConnection) GetOpenTrades() (ReceivedTrades, error) {
 	endpoint := "/accounts/" + c.accountID + "/openTrades"
-
-	response := c.Request(endpoint)
 	data := ReceivedTrades{}
-	unmarshalJson(response, &data)
-	return data
+
+	response, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+	return data, nil
 }
 
-func (c *OandaConnection) GetTrade(ticket string) ReceivedTrade {
+// GetTrade http://developer.oanda.com/rest-live-v20/trade-ep/
+func (c *OandaConnection) GetTrade(ticket string) (ReceivedTrade, error) {
 	endpoint := "/accounts/" + c.accountID + "/trades" + "/" + ticket
-
-	response := c.Request(endpoint)
 	data := ReceivedTrade{}
-	unmarshalJson(response, &data)
-	return data
+
+	response, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
+// ReduceTradeSize http://developer.oanda.com/rest-live-v20/trade-ep/
 // Default is close the whole position using the string "ALL" in body.units
-func (c *OandaConnection) ReduceTradeSize(ticket string, body CloseTradePayload) ModifiedTrade {
+func (c *OandaConnection) ReduceTradeSize(ticket string, body CloseTradePayload) (ModifiedTrade, error) {
 	endpoint := "/accounts/" + c.accountID + "/trades/" + ticket
-	jsonBody, err := json.Marshal(body)
-	checkErr(err)
-	response := c.Update(endpoint, jsonBody)
 	data := ModifiedTrade{}
-	unmarshalJson(response, &data)
-	return data
+
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return data, err
+	}
+
+	response, err := c.Update(endpoint, jsonBody)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }

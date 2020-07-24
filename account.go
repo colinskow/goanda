@@ -6,6 +6,7 @@ import (
 
 // Supporting OANDA docs - http://developer.oanda.com/rest-live-v20/account-ep/
 
+// AccountProperties https://developer.oanda.com/rest-live-v20/account-df/
 type AccountProperties struct {
 	Accounts []struct {
 		ID           string `json:"id"`
@@ -14,6 +15,7 @@ type AccountProperties struct {
 	}
 }
 
+// AccountInfo https://developer.oanda.com/rest-live-v20/account-df/
 type AccountInfo struct {
 	Account struct {
 		NAV                         string        `json:"NAV"`
@@ -65,6 +67,7 @@ type AccountInfo struct {
 	LastTransactionID string `json:"lastTransactionID"`
 }
 
+// AccountSummary https://developer.oanda.com/rest-live-v20/account-df/
 type AccountSummary struct {
 	Account struct {
 		NAV                         string    `json:"NAV"`
@@ -96,6 +99,7 @@ type AccountSummary struct {
 	LastTransactionID string `json:"lastTransactionID"`
 }
 
+// AccountInstruments https://developer.oanda.com/rest-live-v20/primitives-df/#Instrument
 type AccountInstruments struct {
 	Instruments []struct {
 		DisplayName                 string `json:"displayName"`
@@ -113,6 +117,7 @@ type AccountInstruments struct {
 	} `json:"instruments"`
 }
 
+// AccountChanges https://developer.oanda.com/rest-live-v20/account-df/
 type AccountChanges struct {
 	Changes struct {
 		OrdersCancelled []interface{} `json:"ordersCancelled"`
@@ -210,6 +215,7 @@ type AccountChanges struct {
 	} `json:"state"`
 }
 
+// OrderDetails https://developer.oanda.com/rest-live-v20/order-df/
 type OrderDetails struct {
 	GainPerPipPerMillionUnits float64 `json:"gainPerPipPerMillionUnits,string"`
 	LossPerPipPerMillionUnits float64 `json:"lossPerPipPerMillionUnits,string"`
@@ -282,56 +288,109 @@ type OrderDetails struct {
 	LastTransactionID string `json:"lastTransactionID"`
 }
 
-func (c *OandaConnection) GetAccounts() AccountProperties {
+// GetAccounts https://developer.oanda.com/rest-live-v20/account-ep/
+func (c *OandaConnection) GetAccounts() (AccountProperties, error) {
+	data := AccountProperties{}
 	endpoint := "/accounts"
 
-	response := c.Request(endpoint)
-	data := AccountProperties{}
-	unmarshalJson(response, &data)
-	return data
+	response, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
-func (c *OandaConnection) GetAccount(id string) AccountInfo {
+// GetAccount https://developer.oanda.com/rest-live-v20/account-ep/
+func (c *OandaConnection) GetAccount(id string) (AccountInfo, error) {
+	data := AccountInfo{}
 	endpoint := "/accounts/" + id
 
-	response := c.Request(endpoint)
-	data := AccountInfo{}
-	unmarshalJson(response, &data)
-	return data
+	response, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
-func (c *OandaConnection) GetOrderDetails(instrument string, units string) OrderDetails {
-	endpoint := "/accounts/" + c.accountID + "/orderEntryData?disableFiltering=true&instrument=" + instrument + "&orderPositionFill=DEFAULT&units=" + units
-	orderDetails := c.Request(endpoint)
+// GetOrderDetails https://developer.oanda.com/rest-live-v20/order-ep/
+func (c *OandaConnection) GetOrderDetails(instrument string, units string) (OrderDetails, error) {
 	data := OrderDetails{}
-	unmarshalJson(orderDetails, &data)
+	endpoint := "/accounts/" + c.accountID + "/orderEntryData?disableFiltering=true&instrument=" + instrument + "&orderPositionFill=DEFAULT&units=" + units
+	orderDetails, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
 
-	return data
+	err = unmarshalJSON(orderDetails, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
-func (c *OandaConnection) GetAccountSummary() AccountSummary {
+// GetAccountSummary https://developer.oanda.com/rest-live-v20/account-ep/
+func (c *OandaConnection) GetAccountSummary() (AccountSummary, error) {
+	data := AccountSummary{}
 	endpoint := "/accounts/" + c.accountID + "/summary"
 
-	response := c.Request(endpoint)
-	data := AccountSummary{}
-	unmarshalJson(response, &data)
-	return data
+	response, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
-func (c *OandaConnection) GetAccountInstruments(id string) AccountInstruments {
+// GetAccountInstruments https://developer.oanda.com/rest-live-v20/account-ep/
+func (c *OandaConnection) GetAccountInstruments(id string) (AccountInstruments, error) {
+	data := AccountInstruments{}
 	endpoint := "/accounts/" + id + "/instruments"
 
-	response := c.Request(endpoint)
-	data := AccountInstruments{}
-	unmarshalJson(response, &data)
-	return data
+	response, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
-func (c *OandaConnection) GetAccountChanges(id string, transactionId string) AccountChanges {
-	endpoint := "/accounts/" + id + "/changes?sinceTransactionID=" + transactionId
-
-	response := c.Request(endpoint)
+// GetAccountChanges https://developer.oanda.com/rest-live-v20/account-ep/
+func (c *OandaConnection) GetAccountChanges(id string, transactionID string) (AccountChanges, error) {
 	data := AccountChanges{}
-	unmarshalJson(response, &data)
-	return data
+	endpoint := "/accounts/" + id + "/changes?sinceTransactionID=" + transactionID
+
+	response, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }

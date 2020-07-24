@@ -8,6 +8,7 @@ import (
 
 // Supporting OANDA docs - http://developer.oanda.com/rest-live-v20/pricing-ep/
 
+// Pricings https://developer.oanda.com/rest-live-v20/pricing-df/
 type Pricings struct {
 	Prices []struct {
 		Asks []struct {
@@ -48,12 +49,21 @@ type Pricings struct {
 	} `json:"prices"`
 }
 
-func (c *OandaConnection) GetPricingForInstruments(instruments []string) Pricings {
+// GetPricingForInstruments https://developer.oanda.com/rest-live-v20/pricing-ep/
+func (c *OandaConnection) GetPricingForInstruments(instruments []string) (Pricings, error) {
 	instrumentString := strings.Join(instruments, ",")
 	endpoint := "/accounts/" + c.accountID + "/pricing?instruments=" + url.QueryEscape(instrumentString)
-
-	response := c.Request(endpoint)
 	data := Pricings{}
-	unmarshalJson(response, &data)
-	return data
+
+	response, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }

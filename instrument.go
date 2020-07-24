@@ -4,8 +4,11 @@ package goanda
 
 import (
 	"time"
+
+	"github.com/google/go-querystring/query"
 )
 
+// Candle https://developer.oanda.com/rest-live-v20/instrument-df/
 type Candle struct {
 	Open  float64 `json:"o,string"`
 	Close float64 `json:"c,string"`
@@ -13,6 +16,7 @@ type Candle struct {
 	High  float64 `json:"h,string"`
 }
 
+// Candles https://developer.oanda.com/rest-live-v20/instrument-df/
 type Candles struct {
 	Complete bool      `json:"complete"`
 	Volume   int       `json:"volume"`
@@ -20,6 +24,7 @@ type Candles struct {
 	Mid      Candle    `json:"mid"`
 }
 
+// BidAskCandles https://developer.oanda.com/rest-live-v20/instrument-df/
 type BidAskCandles struct {
 	Candles []struct {
 		Ask struct {
@@ -40,18 +45,21 @@ type BidAskCandles struct {
 	} `json:"candles"`
 }
 
+// InstrumentHistory https://developer.oanda.com/rest-live-v20/instrument-df/
 type InstrumentHistory struct {
 	Instrument  string    `json:"instrument"`
 	Granularity string    `json:"granularity"`
 	Candles     []Candles `json:"candles"`
 }
 
+// Bucket https://developer.oanda.com/rest-live-v20/instrument-df/
 type Bucket struct {
 	Price             string `json:"price"`
 	LongCountPercent  string `json:"longCountPercent"`
 	ShortCountPercent string `json:"shortCountPercent"`
 }
 
+// BrokerBook https://developer.oanda.com/rest-live-v20/instrument-df/
 type BrokerBook struct {
 	Instrument  string    `json:"instrument"`
 	Time        time.Time `json:"time"`
@@ -60,6 +68,7 @@ type BrokerBook struct {
 	Buckets     []Bucket  `json:"buckets"`
 }
 
+// InstrumentPricing https://developer.oanda.com/rest-live-v20/instrument-df/
 type InstrumentPricing struct {
 	Time   time.Time `json:"time"`
 	Prices []struct {
@@ -103,47 +112,112 @@ type InstrumentPricing struct {
 	} `json:"prices"`
 }
 
-func (c *OandaConnection) GetCandles(instrument string, count string, granularity string) InstrumentHistory {
-	endpoint := "/instruments/" + instrument + "/candles?count=" + count + "&granularity=" + granularity
-	candles := c.Request(endpoint)
+// GetCandlesPayload https://developer.oanda.com/rest-live-v20/instrument-ep/
+type GetCandlesPayload struct {
+	Granularity       *string    `url:"granularity,omitempty"`
+	Count             *int       `url:"count,omitempty"`
+	From              *time.Time `url:"from,omitempty"`
+	To                *time.Time `url:"to,omitempty"`
+	Smooth            *bool      `url:"smooth,omitempty"`
+	IncludeFirst      *bool      `url:"includeFirst,omitempty"`
+	DailyAlignment    *int       `url:"dailyAlignment,omitempty"`
+	AlignmentTimezone *string    `url:"alignmentTimezone,omitempty"`
+	WeeklyAlignment   *string    `url:"weeklyAlignment,omitempty"`
+}
+
+// GetCandles https://developer.oanda.com/rest-live-v20/instrument-ep/
+func (c *OandaConnection) GetCandles(instrument string, candleSpec GetCandlesPayload) (InstrumentHistory, error) {
+	q, _ := query.Values(candleSpec)
+	queryStr := q.Encode()
+	endpoint := "/instruments/" + instrument + "/candles"
+	if len(queryStr) > 0 {
+		endpoint = endpoint + "?" + queryStr
+	}
 	data := InstrumentHistory{}
-	unmarshalJson(candles, &data)
 
-	return data
+	candles, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(candles, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
-func (c *OandaConnection) GetBidAskCandles(instrument string, count string, granularity string) BidAskCandles {
-	endpoint := "/instruments/" + instrument + "/candles?count=" + count + "&granularity=" + granularity + "&price=BA"
-	candles := c.Request(endpoint)
+// GetBidAskCandles https://developer.oanda.com/rest-live-v20/instrument-ep/
+func (c *OandaConnection) GetBidAskCandles(instrument string, candleSpec GetCandlesPayload) (BidAskCandles, error) {
+	q, _ := query.Values(candleSpec)
+	q.Add("price", "ba")
+	queryStr := q.Encode()
+	endpoint := "/instruments/" + instrument + "/candles" + "?" + queryStr
 	data := BidAskCandles{}
-	unmarshalJson(candles, &data)
 
-	return data
+	candles, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(candles, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
-func (c *OandaConnection) OrderBook(instrument string) BrokerBook {
+// OrderBook https://developer.oanda.com/rest-live-v20/instrument-ep/
+func (c *OandaConnection) OrderBook(instrument string) (BrokerBook, error) {
 	endpoint := "/instruments/" + instrument + "/orderBook"
-	orderbook := c.Request(endpoint)
 	data := BrokerBook{}
-	unmarshalJson(orderbook, &data)
 
-	return data
+	orderbook, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(orderbook, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
-func (c *OandaConnection) PositionBook(instrument string) BrokerBook {
+// PositionBook https://developer.oanda.com/rest-live-v20/instrument-ep/
+func (c *OandaConnection) PositionBook(instrument string) (BrokerBook, error) {
 	endpoint := "/instruments/" + instrument + "/positionBook"
-	orderbook := c.Request(endpoint)
 	data := BrokerBook{}
-	unmarshalJson(orderbook, &data)
+	orderbook, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
 
-	return data
+	err = unmarshalJSON(orderbook, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
-func (c *OandaConnection) GetInstrumentPrice(instrument string) InstrumentPricing {
-	endpoint := "/accounts/" + c.accountID + "/pricing?instruments=" + instrument
-	pricing := c.Request(endpoint)
+// GetInstrumentPrice https://developer.oanda.com/rest-live-v20/pricing-ep/
+func (c *OandaConnection) GetInstrumentPrice(instruments string) (InstrumentPricing, error) {
+	endpoint := "/accounts/" + c.accountID + "/pricing?instruments=" + instruments
 	data := InstrumentPricing{}
-	unmarshalJson(pricing, &data)
 
-	return data
+	pricing, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(pricing, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }

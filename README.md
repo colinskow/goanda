@@ -23,7 +23,7 @@ Goanda can perform the following actions on your OANDA brokerage accounts:
 _Note: This package was created by a third party, and was not created by anyone affiliated with OANDA_
 
 ## Usage
-To use this package run `go get github.com/awoldes/goanda` then import it into your program and set it up following the snippets below.
+To use this package run `go get github.com/colinskow/goanda` then import it into your program and set it up following the snippets below.
 
 ### Basic Example
 I suggest creating a `.env` file for your project to keep your secrets safe! Make sure you add a .gitignore file.
@@ -44,7 +44,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/awoldes/goanda"
+	"github.com/colinskow/goanda"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )

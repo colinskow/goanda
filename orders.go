@@ -7,17 +7,20 @@ import (
 	"time"
 )
 
+// OrderExtensions https://developer.oanda.com/rest-live-v20/order-df/
 type OrderExtensions struct {
 	Comment string `json:"comment,omitempty"`
 	ID      string `json:"id,omitempty"`
 	Tag     string `json:"tag,omitempty"`
 }
 
+// OnFill https://developer.oanda.com/rest-live-v20/order-df/
 type OnFill struct {
 	TimeInForce string `json:"timeInForce,omitempty"`
 	Price       string `json:"price,omitempty"` // must be a string for float precision
 }
 
+// OrderBody https://developer.oanda.com/rest-live-v20/order-df/
 type OrderBody struct {
 	Units            int              `json:"units"`
 	Instrument       string           `json:"instrument"`
@@ -30,9 +33,12 @@ type OrderBody struct {
 	TradeID          string           `json:"tradeId,omitempty"`
 }
 
+// OrderPayload https://developer.oanda.com/rest-live-v20/order-df/
 type OrderPayload struct {
 	Order OrderBody `json:"order"`
 }
+
+// OrderResponse https://developer.oanda.com/rest-live-v20/order-df/
 type OrderResponse struct {
 	LastTransactionID      string `json:"lastTransactionID"`
 	OrderCreateTransaction struct {
@@ -71,6 +77,7 @@ type OrderResponse struct {
 	RelatedTransactionIDs []string `json:"relatedTransactionIDs"`
 }
 
+// OrderInfo https://developer.oanda.com/rest-live-v20/order-df/
 type OrderInfo struct {
 	ClientExtensions struct {
 		Comment string `json:"comment,omitempty"`
@@ -91,15 +98,18 @@ type OrderInfo struct {
 	Units            string    `json:"units,omitempty"`
 }
 
+// RetrievedOrders https://developer.oanda.com/rest-live-v20/order-ep/
 type RetrievedOrders struct {
 	LastTransactionID string      `json:"lastTransactionID"`
 	Orders            []OrderInfo `json:"orders,omitempty"`
 }
 
+// RetrievedOrder https://developer.oanda.com/rest-live-v20/order-ep/
 type RetrievedOrder struct {
 	Order OrderInfo `json:"order"`
 }
 
+// CancelledOrder https://developer.oanda.com/rest-live-v20/order-df/
 type CancelledOrder struct {
 	OrderCancelTransaction struct {
 		ID                string    `json:"id"`
@@ -118,64 +128,123 @@ type CancelledOrder struct {
 	LastTransactionID     string   `json:"lastTransactionID"`
 }
 
-func (c *OandaConnection) CreateOrder(body OrderPayload) OrderResponse {
+// CreateOrder https://developer.oanda.com/rest-live-v20/order-ep/
+func (c *OandaConnection) CreateOrder(body OrderPayload) (OrderResponse, error) {
 	endpoint := "/accounts/" + c.accountID + "/orders"
-	jsonBody, err := json.Marshal(body)
-	checkErr(err)
-	response := c.Send(endpoint, jsonBody)
 	data := OrderResponse{}
-	unmarshalJson(response, &data)
-	return data
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return data, err
+	}
+
+	response, err := c.Send(endpoint, jsonBody)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
-func (c *OandaConnection) GetOrders(instrument string) RetrievedOrders {
+// GetOrders https://developer.oanda.com/rest-live-v20/order-ep/
+func (c *OandaConnection) GetOrders(instrument string) (RetrievedOrders, error) {
 	endpoint := "/accounts/" + c.accountID + "/orders"
 
 	if instrument != "" {
 		endpoint = endpoint + "?instrument=" + instrument
 	}
 
-	response := c.Request(endpoint)
 	data := RetrievedOrders{}
-	unmarshalJson(response, &data)
-	return data
+	response, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
-func (c *OandaConnection) GetPendingOrders() RetrievedOrders {
+// GetPendingOrders https://developer.oanda.com/rest-live-v20/order-ep/
+func (c *OandaConnection) GetPendingOrders() (RetrievedOrders, error) {
 	endpoint := "/accounts/" + c.accountID + "/pendingOrders"
-
-	response := c.Request(endpoint)
 	data := RetrievedOrders{}
-	unmarshalJson(response, &data)
-	return data
 
+	response, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
-func (c *OandaConnection) GetOrder(orderSpecifier string) RetrievedOrder {
+// GetOrder https://developer.oanda.com/rest-live-v20/order-ep/
+func (c *OandaConnection) GetOrder(orderSpecifier string) (RetrievedOrder, error) {
 	endpoint := "/accounts/" + c.accountID + "/orders/" + orderSpecifier
-
-	response := c.Request(endpoint)
 	data := RetrievedOrder{}
-	unmarshalJson(response, &data)
-	return data
 
+	response, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, err
 }
 
-func (c *OandaConnection) UpdateOrder(orderSpecifier string, body OrderPayload) RetrievedOrder {
+// UpdateOrder https://developer.oanda.com/rest-live-v20/order-ep/
+func (c *OandaConnection) UpdateOrder(orderSpecifier string, body OrderPayload) (RetrievedOrder, error) {
 	endpoint := "/accounts/" + c.accountID + "/orders/" + orderSpecifier
+	data := RetrievedOrder{}
+
 	jsonBody, err := json.Marshal(body)
-	checkErr(err)
-	response := c.Update(endpoint, jsonBody)
-	data := RetrievedOrder{}
-	unmarshalJson(response, &data)
-	return data
+	if err != nil {
+		return data, err
+	}
+
+	response, err := c.Update(endpoint, jsonBody)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
-func (c *OandaConnection) CancelOrder(orderSpecifier string) CancelledOrder {
+// CancelOrder https://developer.oanda.com/rest-live-v20/order-ep/
+func (c *OandaConnection) CancelOrder(orderSpecifier string) (CancelledOrder, error) {
 	endpoint := "/accounts/" + c.accountID + "/orders/" + orderSpecifier + "/cancel"
-	response := c.Update(endpoint, nil)
 	data := CancelledOrder{}
-	unmarshalJson(response, &data)
-	return data
 
+	response, err := c.Update(endpoint, nil)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }

@@ -4,6 +4,7 @@ import "encoding/json"
 
 // Supporting OANDA docs - http://developer.oanda.com/rest-live-v20/position-ep/
 
+// OpenPositions https://developer.oanda.com/rest-live-v20/position-df/
 type OpenPositions struct {
 	LastTransactionID string `json:"lastTransactionID"`
 	Positions         []struct {
@@ -28,26 +29,49 @@ type OpenPositions struct {
 	} `json:"positions"`
 }
 
+// ClosePositionPayload https://developer.oanda.com/rest-live-v20/order-ep/
 type ClosePositionPayload struct {
 	LongUnits  string `json:"longUnits"`
-	ShortUnits string `json: "shortUnits"`
+	ShortUnits string `json:"shortUnits"`
 }
 
-func (c *OandaConnection) GetOpenPositions() OpenPositions {
+// GetOpenPositions https://developer.oanda.com/rest-live-v20/order-ep/
+func (c *OandaConnection) GetOpenPositions() (OpenPositions, error) {
 	endpoint := "/accounts/" + c.accountID + "/openPositions"
-
-	response := c.Request(endpoint)
 	data := OpenPositions{}
-	unmarshalJson(response, &data)
-	return data
+
+	response, err := c.Request(endpoint)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }
 
-func (c *OandaConnection) ClosePosition(instrument string, body ClosePositionPayload) ModifiedTrade {
+// ClosePosition https://developer.oanda.com/rest-live-v20/order-ep/
+func (c *OandaConnection) ClosePosition(instrument string, body ClosePositionPayload) (ModifiedTrade, error) {
 	endpoint := "/accounts/" + c.accountID + "/positions/" + instrument + "/close"
-	jsonBody, err := json.Marshal(body)
-	checkErr(err)
-	response := c.Update(endpoint, jsonBody)
 	data := ModifiedTrade{}
-	unmarshalJson(response, &data)
-	return data
+
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return data, err
+	}
+
+	response, err := c.Update(endpoint, jsonBody)
+	if err != nil {
+		return data, err
+	}
+
+	err = unmarshalJSON(response, &data)
+	if err != nil {
+		return data, err
+	}
+
+	return data, nil
 }

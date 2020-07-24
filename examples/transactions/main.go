@@ -5,12 +5,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/awoldes/goanda"
+	"github.com/colinskow/goanda"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/joho/godotenv"
 )
 
-func getTransactions() {
+func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -22,9 +22,11 @@ func getTransactions() {
 	toTime := time.Now()
 	// AddDate(Y, M, D) - https://golang.org/pkg/time/#Time.AddDate
 	fromTime := toTime.AddDate(0, -1, 0)
-	transactions := oanda.GetTransactions(fromTime, toTime)
+	transactions, err := oanda.GetTransactions(fromTime, toTime)
+	goanda.CheckErr(err)
 	spew.Dump("%+v\n", transactions)
 
-	transactionsSince := oanda.GetTransactionsSinceId("55")
+	transactionsSince, err := oanda.GetTransactionsSinceID("55")
+	goanda.CheckErr(err)
 	spew.Dump("%+v\n", transactionsSince)
 }
