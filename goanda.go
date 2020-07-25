@@ -32,7 +32,8 @@ type OandaConnection struct {
 	token          string
 	accountID      string
 	DatetimeFormat string
-	headers        *Headers
+	headers        map[string]string
+	client         *http.Client
 }
 
 // OandaAgent http agent header
@@ -55,11 +56,14 @@ func NewConnection(accountID string, token string, live bool) *OandaConnection {
 
 	authHeader := buffer.String()
 	// Create headers for oanda to be used in requests
-	headers := &Headers{
-		contentType:    "application/json",
-		agent:          OandaAgent,
-		DatetimeFormat: "RFC3339",
-		auth:           authHeader,
+	headers := map[string]string{
+		"User-Agent":    OandaAgent,
+		"Authorization": authHeader,
+		"Content-Type":  "application/json",
+		"Connection":    "Keep-Alive",
+	}
+	client := http.Client{
+		Timeout: time.Second * 5, // 5 sec timeout
 	}
 	// Create the connection object
 	connection := &OandaConnection{
@@ -69,6 +73,7 @@ func NewConnection(accountID string, token string, live bool) *OandaConnection {
 		token:     token,
 		headers:   headers,
 		accountID: accountID,
+		client:    &client,
 	}
 
 	return connection
@@ -77,9 +82,6 @@ func NewConnection(accountID string, token string, live bool) *OandaConnection {
 // Request make a get request to the Oanda V20 API
 // TODO: include params as a second option
 func (c *OandaConnection) Request(endpoint string) ([]byte, error) {
-	client := http.Client{
-		Timeout: time.Second * 5, // 5 sec timeout
-	}
 
 	url := createURL(c.hostname, endpoint)
 
@@ -89,7 +91,7 @@ func (c *OandaConnection) Request(endpoint string) ([]byte, error) {
 		return nil, err
 	}
 
-	body, err := makeRequest(c, endpoint, client, req)
+	body, err := makeRequest(c, endpoint, c.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -99,10 +101,6 @@ func (c *OandaConnection) Request(endpoint string) ([]byte, error) {
 
 // Send post data to the API
 func (c *OandaConnection) Send(endpoint string, data []byte) ([]byte, error) {
-	client := http.Client{
-		Timeout: time.Second * 5, // 5 sec timeout
-	}
-
 	url := createURL(c.hostname, endpoint)
 
 	// New request object
@@ -111,7 +109,7 @@ func (c *OandaConnection) Send(endpoint string, data []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	body, err := makeRequest(c, endpoint, client, req)
+	body, err := makeRequest(c, endpoint, c.client, req)
 	if err != nil {
 		return nil, err
 	}
@@ -121,10 +119,6 @@ func (c *OandaConnection) Send(endpoint string, data []byte) ([]byte, error) {
 
 // Update put data to the API
 func (c *OandaConnection) Update(endpoint string, data []byte) ([]byte, error) {
-	client := http.Client{
-		Timeout: time.Second * 5,
-	}
-
 	url := createURL(c.hostname, endpoint)
 
 	req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(data))
@@ -132,7 +126,7 @@ func (c *OandaConnection) Update(endpoint string, data []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	body, err := makeRequest(c, endpoint, client, req)
+	body, err := makeRequest(c, endpoint, c.client, req)
 	if err != nil {
 		return nil, err
 	}

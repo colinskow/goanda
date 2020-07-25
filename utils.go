@@ -41,22 +41,26 @@ func createURL(host string, endpoint string) string {
 	return url
 }
 
-func makeRequest(c *OandaConnection, endpoint string, client http.Client, req *http.Request) ([]byte, error) {
-	req.Header.Set("User-Agent", c.headers.agent)
-	req.Header.Set("Authorization", c.headers.auth)
-	req.Header.Set("Content-Type", c.headers.contentType)
+func makeRequest(c *OandaConnection, endpoint string, client *http.Client, req *http.Request) ([]byte, error) {
+	for key, val := range c.headers {
+		req.Header.Set(key, val)
+	}
 
 	res, getErr := client.Do(req)
 	if getErr != nil {
 		return nil, getErr
 	}
+	defer res.Body.Close()
+
 	body, readErr := ioutil.ReadAll(res.Body)
 	if readErr != nil {
 		return nil, readErr
 	}
+
 	apiErr := checkAPIErr(body, endpoint)
 	if apiErr != nil {
 		return nil, apiErr
 	}
+
 	return body, nil
 }
