@@ -1,7 +1,11 @@
 package goanda
 
 import (
+	"bufio"
 	"bytes"
+	"context"
+	"errors"
+	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -26,14 +30,18 @@ type Connection interface {
 
 // OandaConnection data
 type OandaConnection struct {
-	hostname       string
-	port           int
-	ssl            bool
-	token          string
-	accountID      string
-	DatetimeFormat string
-	headers        map[string]string
-	client         *http.Client
+	hostname   string
+	streamhost string
+	token      string
+	accountID  string
+	headers    map[string]string
+	client     *http.Client
+}
+
+// ByteStream streams a line of json encoded data or an error
+type ByteStream struct {
+	Value []byte
+	Error error
 }
 
 // OandaAgent http agent header
@@ -41,20 +49,18 @@ const OandaAgent string = "v20-golang/0.0.1"
 
 // NewConnection makes a new API client
 func NewConnection(accountID string, token string, live bool) *OandaConnection {
-	hostname := ""
+	var hostname string
+	var streamhost string
 	// should we use the live API?
 	if live {
 		hostname = "https://api-fxtrade.oanda.com/v3"
+		streamhost = "https://stream-fxtrade.oanda.com/v3"
 	} else {
 		hostname = "https://api-fxpractice.oanda.com/v3"
+		streamhost = "https://stream-fxpractice.oanda.com/v3"
 	}
+	authHeader := "Bearer " + token
 
-	var buffer bytes.Buffer
-	// Generate the auth header
-	buffer.WriteString("Bearer ")
-	buffer.WriteString(token)
-
-	authHeader := buffer.String()
 	// Create headers for oanda to be used in requests
 	headers := map[string]string{
 		"User-Agent":    OandaAgent,
@@ -67,13 +73,12 @@ func NewConnection(accountID string, token string, live bool) *OandaConnection {
 	}
 	// Create the connection object
 	connection := &OandaConnection{
-		hostname:  hostname,
-		port:      443,
-		ssl:       true,
-		token:     token,
-		headers:   headers,
-		accountID: accountID,
-		client:    &client,
+		hostname:   hostname,
+		streamhost: streamhost,
+		token:      token,
+		headers:    headers,
+		accountID:  accountID,
+		client:     &client,
 	}
 
 	return connection
@@ -132,4 +137,61 @@ func (c *OandaConnection) Update(endpoint string, data []byte) ([]byte, error) {
 	}
 
 	return body, nil
+}
+
+// Stream consume a streamng API
+func (c *OandaConnection) Stream(endpoint string) (chan ByteStream, context.CancelFunc, error) {
+	url := createURL(c.streamhost, endpoint)
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	req = req.WithContext(ctx)
+	for key, val := range c.headers {
+		req.Header.Set(key, val)
+	}
+
+	client := http.Client{}
+	res, getErr := client.Do(req)
+	if getErr != nil {
+		cancel()
+		return nil, nil, getErr
+	}
+	reader := bufio.NewReader(res.Body)
+
+	if res.StatusCode != 200 {
+		body, readErr := ioutil.ReadAll(res.Body)
+		cancel()
+		if readErr != nil {
+			return nil, nil, readErr
+		}
+		apiErr := checkAPIErr(body, endpoint)
+		if apiErr != nil {
+			return nil, nil, apiErr
+		}
+		return nil, nil, errors.New(res.Status)
+	}
+
+	channel := make(chan ByteStream)
+
+	go func() {
+		for {
+			line, err := reader.ReadBytes('\n')
+			if err == nil {
+				channel <- ByteStream{Value: line, Error: nil}
+			} else {
+				channel <- ByteStream{Value: nil, Error: err}
+				if ctx.Err() == nil {
+					cancel()
+				}
+				close(channel)
+				return
+			}
+		}
+	}()
+
+	return channel, cancel, nil
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -17,7 +16,6 @@ func main() {
 	}
 	key := os.Getenv("OANDA_API_KEY")
 	accountID := os.Getenv("OANDA_ACCOUNT_ID")
-	fmt.Println(key, accountID)
 	oanda := goanda.NewConnection(accountID, key, false)
 	gran := "M5"
 	count := 60
