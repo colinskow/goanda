@@ -10,10 +10,10 @@ import (
 
 // Candle https://developer.oanda.com/rest-live-v20/instrument-df/
 type Candle struct {
-	Open  float64 `json:"o,string"`
-	Close float64 `json:"c,string"`
-	Low   float64 `json:"l,string"`
-	High  float64 `json:"h,string"`
+	Open  string `json:"o"`
+	Close string `json:"c"`
+	Low   string `json:"l"`
+	High  string `json:"h"`
 }
 
 // Candles https://developer.oanda.com/rest-live-v20/instrument-df/
@@ -28,16 +28,16 @@ type Candles struct {
 type BidAskCandles struct {
 	Candles []struct {
 		Ask struct {
-			C float64 `json:"c,string"`
-			H float64 `json:"h,string"`
-			L float64 `json:"l,string"`
-			O float64 `json:"o,string"`
+			C string `json:"c"`
+			H string `json:"h"`
+			L string `json:"l"`
+			O string `json:"o"`
 		} `json:"ask"`
 		Bid struct {
-			C float64 `json:"c,string"`
-			H float64 `json:"h,string"`
-			L float64 `json:"l,string"`
-			O float64 `json:"o,string"`
+			C string `json:"c"`
+			H string `json:"h"`
+			L string `json:"l"`
+			O string `json:"o"`
 		} `json:"bid"`
 		Complete bool      `json:"complete"`
 		Time     time.Time `json:"time"`
@@ -75,17 +75,17 @@ type InstrumentPricing struct {
 		Type string    `json:"type"`
 		Time time.Time `json:"time"`
 		Bids []struct {
-			Price     float64 `json:"price,string"`
-			Liquidity int     `json:"liquidity"`
+			Price     string `json:"price"`
+			Liquidity int    `json:"liquidity"`
 		} `json:"bids"`
 		Asks []struct {
-			Price     float64 `json:"price,string"`
-			Liquidity int     `json:"liquidity"`
+			Price     string `json:"price"`
+			Liquidity int    `json:"liquidity"`
 		} `json:"asks"`
-		CloseoutBid    float64 `json:"closeoutBid,string"`
-		CloseoutAsk    float64 `json:"closeoutAsk,string"`
-		Status         string  `json:"status"`
-		Tradeable      bool    `json:"tradeable"`
+		CloseoutBid    string `json:"closeoutBid"`
+		CloseoutAsk    string `json:"closeoutAsk"`
+		Status         string `json:"status"`
+		Tradeable      bool   `json:"tradeable"`
 		UnitsAvailable struct {
 			Default struct {
 				Long  string `json:"long"`

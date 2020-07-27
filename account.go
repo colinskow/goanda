@@ -72,14 +72,14 @@ type AccountSummary struct {
 	Account struct {
 		NAV                         string    `json:"NAV"`
 		Alias                       string    `json:"alias"`
-		Balance                     float64   `json:"balance,string"`
+		Balance                     string    `json:"balance"`
 		CreatedByUserID             int       `json:"createdByUserID"`
 		CreatedTime                 time.Time `json:"createdTime"`
 		Currency                    string    `json:"currency"`
 		HedgingEnabled              bool      `json:"hedgingEnabled"`
 		ID                          string    `json:"id"`
 		LastTransactionID           string    `json:"lastTransactionID"`
-		MarginAvailable             float64   `json:"marginAvailable,string"`
+		MarginAvailable             string    `json:"marginAvailable"`
 		MarginCloseoutMarginUsed    string    `json:"marginCloseoutMarginUsed"`
 		MarginCloseoutNAV           string    `json:"marginCloseoutNAV"`
 		MarginCloseoutPercent       string    `json:"marginCloseoutPercent"`
@@ -217,66 +217,66 @@ type AccountChanges struct {
 
 // OrderDetails https://developer.oanda.com/rest-live-v20/order-df/
 type OrderDetails struct {
-	GainPerPipPerMillionUnits float64 `json:"gainPerPipPerMillionUnits,string"`
-	LossPerPipPerMillionUnits float64 `json:"lossPerPipPerMillionUnits,string"`
+	GainPerPipPerMillionUnits string `json:"gainPerPipPerMillionUnits"`
+	LossPerPipPerMillionUnits string `json:"lossPerPipPerMillionUnits"`
 	UnitsAvailable            struct {
 		Default struct {
-			Long  float64 `json:"long,string"`
-			Short float64 `json:"short,string"`
+			Long  string `json:"long"`
+			Short string `json:"short"`
 		} `json:"default"`
 		OpenOnly struct {
-			Long  float64 `json:"long,string"`
-			Short float64 `json:"short,string"`
+			Long  string `json:"long"`
+			Short string `json:"short"`
 		} `json:"openOnly"`
 		ReduceFirst struct {
-			Long  float64 `json:"long,string"`
-			Short float64 `json:"short,string"`
+			Long  string `json:"long"`
+			Short string `json:"short"`
 		} `json:"reduceFirst"`
 		ReduceOnly struct {
-			Long  float64 `json:"long,string"`
-			Short float64 `json:"short,string"`
+			Long  string `json:"long"`
+			Short string `json:"short"`
 		} `json:"reduceOnly"`
 	} `json:"unitsAvailable"`
 	UnitValues struct {
 		Isolation struct {
-			Units               float64 `json:"units,string"`
-			Commission          float64 `json:"commission,string"`
-			PositionValueChange float64 `json:"positionValueChange,string"`
-			PositionValue       float64 `json:"positionValue,string"`
-			MarginRequired      float64 `json:"marginRequired,string"`
-			MarginUsed          float64 `json:"marginUsed,string"`
+			Units               string `json:"units"`
+			Commission          string `json:"commission"`
+			PositionValueChange string `json:"positionValueChange"`
+			PositionValue       string `json:"positionValue"`
+			MarginRequired      string `json:"marginRequired"`
+			MarginUsed          string `json:"marginUsed"`
 		} `json:"isolation"`
 		PositionDefault struct {
-			Units               float64 `json:"units,string"`
-			Commission          float64 `json:"commission,string"`
-			PositionValueChange float64 `json:"positionValueChange,string"`
-			PositionValue       float64 `json:"positionValue,string"`
-			MarginRequired      float64 `json:"marginRequired,string"`
-			MarginUsed          float64 `json:"marginUsed,string"`
+			Units               string `json:"units"`
+			Commission          string `json:"commission"`
+			PositionValueChange string `json:"positionValueChange"`
+			PositionValue       string `json:"positionValue"`
+			MarginRequired      string `json:"marginRequired"`
+			MarginUsed          string `json:"marginUsed"`
 		} `json:"positionDefault"`
 		PositionOpenOnly struct {
-			Units               float64 `json:"units,string"`
-			Commission          float64 `json:"commission,string"`
-			PositionValueChange float64 `json:"positionValueChange,string"`
-			PositionValue       float64 `json:"positionValue,string"`
-			MarginRequired      float64 `json:"marginRequired,string"`
-			MarginUsed          float64 `json:"marginUsed,string"`
+			Units               string `json:"units"`
+			Commission          string `json:"commission"`
+			PositionValueChange string `json:"positionValueChange"`
+			PositionValue       string `json:"positionValue"`
+			MarginRequired      string `json:"marginRequired"`
+			MarginUsed          string `json:"marginUsed"`
 		} `json:"positionOpenOnly"`
 		PositionReduceFirst struct {
-			Units               float64 `json:"units,string"`
-			Commission          float64 `json:"commission,string"`
-			PositionValueChange float64 `json:"positionValueChange,string"`
-			PositionValue       float64 `json:"positionValue,string"`
-			MarginRequired      float64 `json:"marginRequired,string"`
-			MarginUsed          float64 `json:"marginUsed,string"`
+			Units               string `json:"units"`
+			Commission          string `json:"commission"`
+			PositionValueChange string `json:"positionValueChange"`
+			PositionValue       string `json:"positionValue"`
+			MarginRequired      string `json:"marginRequired"`
+			MarginUsed          string `json:"marginUsed"`
 		} `json:"positionReduceFirst"`
 		PositionReduceOnly struct {
-			Units               float64 `json:"units,string"`
-			Commission          float64 `json:"commission,string"`
-			PositionValueChange float64 `json:"positionValueChange,string"`
-			PositionValue       float64 `json:"positionValue,string"`
-			MarginRequired      float64 `json:"marginRequired,string"`
-			MarginUsed          float64 `json:"marginUsed,string"`
+			Units               string `json:"units"`
+			Commission          string `json:"commission"`
+			PositionValueChange string `json:"positionValueChange"`
+			PositionValue       string `json:"positionValue"`
+			MarginRequired      string `json:"marginRequired"`
+			MarginUsed          string `json:"marginUsed"`
 		} `json:"positionReduceOnly"`
 	} `json:"unitValues"`
 	ValueTables struct {
